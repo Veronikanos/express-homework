@@ -15,6 +15,7 @@ const port = 3000;
 
 
 app.use(express.json());
+// app.use(express.urlencoded({ extended: false}))
 app.use("/books", booksRouter);
 
 app.get('/', (req, res)=>{
@@ -30,12 +31,23 @@ app.get('/', (req, res)=>{
 // 	}
 // })
 
-// app.use((err, req, res, next)=>{
-// 	// res.status(404).json({
-// 	// 	message: "Not found"
-// 	// })
-// 	console.error("Error found!");
-// 		res.status(500).send("Something wrong");
-// })
+app.use((error, req, res, next)=>{
+
+	if (error){
+		console.log("Error occured!!!");
+		const message = error.message || "Something wrong";
+		const status = error.status || 500;
+		return res.status(status).send(message);
+	}
+	// err.statusCode = err.statusCode || 500;
+	// err.status = err.status || "Something wrong";
+
+	// res.status(err.statusCode).json({
+	// 	status: err.statusCode,
+	// 	message: "Not found"
+	// })
+	// console.error("Error found!");
+	// 	res.status(500).send("Something wrong");
+})
 
 app.listen(port, ()=> console.log("server running"))

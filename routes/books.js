@@ -1,5 +1,6 @@
 const express = require("express");
-const booksMdware = require('../middlewares/books.mdware');
+const booksMdware = require('../middlewares/checkBody.mdware');
+const {getErrorMessage} = require('../middlewares/errors.mdware');
 const books = require("../models/books");
 
 const router = express.Router();
@@ -29,41 +30,59 @@ const router = express.Router();
 // 	res.sendStatus(404);
 // })
 
-router.get("/", async (req, res) => {
-	const result = await books.getAll();
-	res.json(result);
+router.get("/", async (req, res, next) => {
+	try {
+			const result = await books.getAll();
+			res.json(result);
+	} catch (error) {
+		// console.log(error);
+		next(getErrorMessage({status: 400, message: "Error while getting all books"}));
+		// next(new Error("Can not get all books"))
+		// res.status(500).send("Can not get all books")
+	}
+
 })
 
 router.get("/:id", async (req, res) => {
-	// console.log(req.params.id);
-	const {id} = req.params;
-	const result = await books.getBookById(id);
-
-	// if not found - 404
-	// console.log(result);
-	res.json(result);
+	try {
+			const {id} = req.params;
+		const result = await books.getBookById(id);
+		res.json(result);
+	} catch (error) {
+		next(getErrorMessage({status: 400, message: "Error while adding book by ID"}));
+	}
 })
 
-router.post("/", booksMdware.checkBody, async (req, res)=>{
-
-	const result = await books.addBook(req.body);
-	res.status(201).json(result);
-	// const book = req.body;
-	// books.push(book);
-	// res.json(books);
-	// res.send("New book created")
+router.post("/", booksMdware.checkBody, async (req, res) => {
+	try {
+		const result = await books.addBook(req.body);
+		res.status(201).json(result);
+	} catch (error) {
+		// console.log(error);
+		next(getErrorMessage({status: 400, message: "Error while adding book"}));
+	}
 })
 
 router.put("/:id", async (req, res)=>{
-const {id} = req.params;
+	try {
+		const {id} = req.params;
 	const result = await books.updateBook(id, req.body);
 	res.json(result);
+	} catch (error) {
+		next(getErrorMessage({status: 400, message: "Error while updating book by id"}));
+	}
+
 })
 
 router.delete("/:id", async (req, res)=>{
-const {id} = req.params;
+	try {
+		const {id} = req.params;
 	const result = await books.removeBook(id, req.body);
 	res.status(202).json(result);
+	} catch (error) {
+		next(getErrorMessage({status: 400, message: "Error while deleting book"}));
+	}
+
 })
 
 module.exports = router
