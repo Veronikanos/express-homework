@@ -1,6 +1,7 @@
 const express = require("express");
 
-const booksRouter = require('./routes/create')
+const booksRouter = require('./routes/books')
+// const createBookRouter = require('./routes/create')
 // const books = require("./books")
 
 const app = express();
@@ -14,7 +15,7 @@ const port = 3000;
 
 
 app.use(express.json());
-app.use("/create", booksRouter);
+app.use("/books", booksRouter);
 
 app.get('/', (req, res)=>{
 	res.send("<h2>Home page</h2>")
