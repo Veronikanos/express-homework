@@ -1,6 +1,9 @@
 const express = require("express");
 
-const booksRouter = require('./routes/books')
+const booksRouter = require('./routes/books');
+// const reviewsRouter = require('./routes/reviews')
+
+
 // const createBookRouter = require('./routes/create')
 // const books = require("./books")
 
@@ -17,6 +20,7 @@ const port = 3000;
 app.use(express.json());
 // app.use(express.urlencoded({ extended: false}))
 app.use("/books", booksRouter);
+// app.use("/books/reviews", reviewsRouter);
 
 app.get('/', (req, res)=>{
 	res.send("<h2>Home page</h2>")
