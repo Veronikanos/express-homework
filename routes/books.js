@@ -1,8 +1,7 @@
 const express = require("express");
 const {checkBody,
 	validateBook,
-	validateReview, checkBookTitle} = require('../middlewares/books.mdware');
-const {getErrorMessage} = require('../middlewares/errors.mdware');
+	validateReview, checkBookTitle, checkReviewComment} = require('../middlewares/books.mdware');
 const books = require("../models/allBooks");
 
 const router = express.Router();
@@ -14,118 +13,37 @@ router.get("/", (req, res)=>{
 	res.json(books);
 })
 
-
 // Get book by ID
-router.get("/:id", validateBook(books), (req, res) => {
+router.get("/:bookId", validateBook(books), (req, res) => {
 	// console.log(req.book);
 	res.json(req.book);
 })
 
+// TODO: Create book
+
 // Edit book title
-router.put("/:id", validateBook(books), checkBody, checkBookTitle, (req, res) => {
+router.put("/:bookId?", validateBook(books), checkBody, checkBookTitle, (req, res) => {
   req.book.title = req.body.title;
   res.json(req.book);
 })
 
-// Add a review for a book
-router.post("/:id/reviews", checkBody, validateBook, (req, res) => {
-  const book = books.find((b) => b.id === parseInt(req.params.id));
-  if (!book) {
-    return res.status(404).json({ message: "Book not found" });
-  }
-  const review = { id: String(books.length + 1), comment: req.body.comment };
-  book.reviews.push(review);
-  res.status(201).json({ message: "Review added", review });
-});
-
-
-// Delete a review by ID
-router.delete("/:id/reviews/:id", validateBook, validateReview, (req, res) => {
-  req.book.reviews = req.book.reviews.filter((r) => r.id !== req.review.id);
-  res.json({ message: "Review deleted", review: req.review });
-});
-
-
 // Receive list of reviews by book id
-router.get("/:id/reviews", validateBook, (req, res) => {
-  const bookId = parseInt(req.params.id);
-
-  const book = books.find((b) => b.id === bookId);
-  if (!book) {
-    res.status(404).json({ message: `Book with id ${bookId} not found` });
-    return;
-  }
-
-  res.json({ reviews: book.reviews });
+router.get("/:bookId/reviews", validateBook(books), (req, res) => {
+  res.json(req.book.reviews);
 })
 
+// Add a review for a book
+router.post("/:bookId/reviews", validateBook(books), checkBody, checkReviewComment, (req, res) => {
+  const review = { id: Date.now(), comment: req.body.comment };
+  req.book.reviews.push(review);
+  res.status(201).json(review);
+});
 
-
-// router.get("/", async (req, res, next) => {
-// 	try {
-// 			const result = await books.getAll();
-// 			res.json(result);
-// 	} catch (error) {
-// 		// console.log(error);
-// 		next(getErrorMessage({status: 400, message: "Error while getting all books"}));
-// 		// next(new Error("Can not get all books"))
-// 		// res.status(500).send("Can not get all books")
-// 	}
-// })
-
-
-
-// router.get("/:id", async (req, res) => {
-// 	try {
-// 			const {id} = req.params;
-// 		const result = await books.getBookById(id);
-// 		res.json(result);
-// 	} catch (error) {
-// 		next(getErrorMessage({status: 400, message: "Error while adding book by ID"}));
-// 	}
-// })
-
-
-// Add a review to a book
-// exports.patch = (req, res) => {
-//   const book = books.find((book) => book.id === parseInt(req.params.bookId));
-//   if (!book) {
-//     return res.status(404).json({ message: "Book not found" });
-//   }
-//   const review = { id: Date.now(), comment: req.body.comment };
-//   book.reviews.push(review);
-//   res.status(201).json({ message: "Review added", review });
-// };
-
-// router.post("/", booksMdware.checkBody, async (req, res) => {
-// 	try {
-// 		const result = await books.addBook(req.body);
-// 		res.status(201).json(result);
-// 	} catch (error) {
-// 		// console.log(error);
-// 		next(getErrorMessage({status: 400, message: "Error while adding book"}));
-// 	}
-// })
-
-// router.put("/:id", async (req, res)=>{
-// 	try {
-// 		const {id} = req.params;
-// 	const result = await books.updateBook(id, req.body);
-// 	res.json(result);
-// 	} catch (error) {
-// 		next(getErrorMessage({status: 400, message: "Error while updating book by id"}));
-// 	}
-// })
-
-// router.delete("/:id", async (req, res)=>{
-// 	try {
-// 		const {id} = req.params;
-// 	const result = await books.removeBook(id, req.body);
-// 	res.status(202).json(result);
-// 	} catch (error) {
-// 		next(getErrorMessage({status: 400, message: "Error while deleting book"}));
-// 	}
-
-// })
+// Delete a review by ID
+router.delete("/:bookId/reviews/:reviewId", validateBook(books), validateReview, (req, res) => {
+	const index = req.book.reviews.findIndex((r) => r.id === req.review.id);
+    req.book.reviews.splice(index, 1);
+    res.json(req.review);
+});
 
 module.exports = router

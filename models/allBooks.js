@@ -28,10 +28,6 @@ const books = [
       {
         id: 2,
         comment: "An important book that everyone should read."
-      },
-      {
-        id: 3,
-        comment: "Atticus Finch is a hero."
       }
     ]
   },
