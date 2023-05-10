@@ -35,14 +35,27 @@ app.get('/', (req, res)=>{
 // 	}
 // })
 
-app.use((error, req, res, next)=>{
 
+// Handle all GET requests that don't match any of other route handlers
+app.get("*", (req, res) => {
+  res.status(404).send("Page not found");
+});
+
+app.use((error, req, res, next) => {
 	if (error){
-		console.log("Error occured!!!");
+		// console.log("Error occured!!!");
 		const message = error.message || "Something wrong";
 		const status = error.status || 500;
-		return res.status(status).send(message);
+		res.status(status).json( message);
+		// return res.status(status).send(message);
 	}
+
+	// if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+  //   res.status(400).send({ error: "Bad request" });
+  // } else {
+  //   res.status(404).send({ error: "Not found" });
+  // }
+
 	// err.statusCode = err.statusCode || 500;
 	// err.status = err.status || "Something wrong";
 

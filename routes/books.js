@@ -1,5 +1,7 @@
 const express = require("express");
-const booksMdware = require('../middlewares/checkBody.mdware');
+const {checkBody,
+	validateBook,
+	validateReview, checkBookTitle} = require('../middlewares/books.mdware');
 const {getErrorMessage} = require('../middlewares/errors.mdware');
 const books = require("../models/allBooks");
 
@@ -7,64 +9,26 @@ const router = express.Router();
 router.use(express.json());
 
 
-
-// Middleware to validate if book exists
-const validateBook = (req, res, next) => {
-  const book = books.find((b) => b.id === parseInt(req.params.id));
-  if (!book) {
-    return res.status(404).json({ message: "Book not found" });
-  }
-  req.book = book;
-  next();
-};
-
-// Middleware to validate if review exists
-const validateReview = (req, res, next) => {
-  const review = req.book.reviews.find((r) => r.id === parseInt(req.params.id));
-  if (!review) {
-    return res.status(404).json({ message: "Review not found" });
-  }
-  req.review = review;
-  next();
-};
-
-
-
 // Get list of books
 router.get("/", (req, res)=>{
-	console.log(books);
 	res.json(books);
 })
 
 
 // Get book by ID
-router.get("/:id",(req, res) => {
-		const book = books.find((book) => book.id === parseInt(req.params.id));
-	if (!book) {
-		return res.status(404).json({ message: "Book not found" });
-	}
-	res.json(book);
+router.get("/:id", validateBook(books), (req, res) => {
+	// console.log(req.book);
+	res.json(req.book);
 })
 
 // Edit book title
-router.put("/:id", validateBook, (req, res) => {
-
-  const bookId = parseInt(req.params.id);
-  const newTitle = req.body.title;
-
-  const book = books.find((b) => b.id === bookId);
-  if (!book) {
-    res.status(404).json({ message: `Book with id ${bookId} not found` });
-    return;
-  }
-
-  book.title = newTitle;
-
-  res.json({ message: "Book title updated", book });
+router.put("/:id", validateBook(books), checkBody, checkBookTitle, (req, res) => {
+  req.book.title = req.body.title;
+  res.json(req.book);
 })
 
 // Add a review for a book
-router.post("/:id/reviews", validateBook, (req, res) => {
+router.post("/:id/reviews", checkBody, validateBook, (req, res) => {
   const book = books.find((b) => b.id === parseInt(req.params.id));
   if (!book) {
     return res.status(404).json({ message: "Book not found" });
