@@ -1,7 +1,7 @@
 const express = require("express");
 const {checkBody,
 	validateBook,
-	validateReview, checkBookTitle, checkReviewComment} = require('../middlewares/books.mdware');
+	validateReview, checkBookTitleBody, checkReviewComment, checkReviewsBody} = require('../middlewares/books.mdware');
 const books = require("../models/allBooks");
 
 const router = express.Router();
@@ -15,14 +15,22 @@ router.get("/", (req, res)=>{
 
 // Get book by ID
 router.get("/:bookId", validateBook(books), (req, res) => {
-	// console.log(req.book);
 	res.json(req.book);
 })
 
-// TODO: Create book
+// Create new book
+router.post("/", checkBookTitleBody(books), checkReviewsBody, (req, res) => {
+	const newBook = {
+		id: Date.now(),
+		title: req.title,
+		reviews: req.reviews
+	}
+	books.push(newBook);
+	res.status(201).json(newBook);
+})
 
 // Edit book title
-router.put("/:bookId?", validateBook(books), checkBody, checkBookTitle, (req, res) => {
+router.put("/:bookId?", validateBook(books), checkBody, checkBookTitleBody(books), (req, res) => {
   req.book.title = req.body.title;
   res.json(req.book);
 })
@@ -33,7 +41,7 @@ router.get("/:bookId/reviews", validateBook(books), (req, res) => {
 })
 
 // Add a review for a book
-router.post("/:bookId/reviews", validateBook(books), checkBody, checkReviewComment, (req, res) => {
+router.put("/:bookId/reviews", validateBook(books), checkBody, checkReviewComment, (req, res) => {
   const review = { id: Date.now(), comment: req.body.comment };
   req.book.reviews.push(review);
   res.status(201).json(review);
